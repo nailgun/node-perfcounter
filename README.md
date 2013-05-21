@@ -1,7 +1,7 @@
 PerfCounter
 ===========
 
-[![Build Status](https://secure.travis-ci.org/nailgun/node-perfcounter.png)](http://travis-ci.org/nailgun/node-perfcounter)
+[![Build Status](https://travis-ci.org/nailgun/node-perfcounter.png?branch=master)](https://travis-ci.org/nailgun/node-perfcounter)
 
 *Inspired by [nodeca/puncher](https://github.com/nodeca/puncher)*
 
