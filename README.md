@@ -43,5 +43,39 @@ doSomeJob(function () {
 Example above will show you something like this:
 
 ``` javascript
-
+{ name: 'Total',
+  meta: {},
+  start: 1369158511247,
+  end: 1369158511853,
+  total: 605.88982,
+  missed: 0.5713479999999436,
+  children: 
+   [ { name: 'doSomeJob',
+       meta: {},
+       start: 1369158511247,
+       end: 1369158511853,
+       total: 605.318472,
+       missed: 0.7340830000000551,
+       children: 
+        [ { name: 'Timeout 1',
+            meta: {},
+            start: 1369158511247,
+            end: 1369158511350,
+            total: 102.898981,
+            missed: null,
+            children: [] },
+          { name: 'Timeout 2',
+            meta: {},
+            start: 1369158511351,
+            end: 1369158511551,
+            total: 200.483068,
+            missed: null,
+            children: [] },
+          { name: 'Timeout 3',
+            meta: {},
+            start: 1369158511551,
+            end: 1369158511853,
+            total: 301.20234,
+            missed: null,
+            children: [] } ] } ] }
 ```

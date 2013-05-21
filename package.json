@@ -30,6 +30,7 @@
     "lodash": ""
   },
   "devDependencies": {
-    "mocha" : ""
+    "mocha" : "",
+    "should": ""
   }
 }
