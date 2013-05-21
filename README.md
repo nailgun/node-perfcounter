@@ -1,6 +1,8 @@
 PerfCounter
 ===========
 
+[![Build Status](https://secure.travis-ci.org/nailgun/node-perfcounter.png)](http://travis-ci.org/nailgun/node-perfcounter)
+
 *Inspired by [nodeca/puncher](https://github.com/nodeca/puncher)*
 
 Library to collect timing data for your node.js application. Simplifies bottlenecks search.
