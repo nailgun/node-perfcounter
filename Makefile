@@ -14,4 +14,7 @@ test-cov:
 	MYFILES_COV=1 $(MAKE) -s test REPORTER=html-cov > test/out/coverage.html
 	rm -rf lib-cov
 
-.PHONY: test test-cov
+doc:
+	./node_modules/.bin/ndoc --index README.md lib
+
+.PHONY: test test-cov doc

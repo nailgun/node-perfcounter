@@ -1,6 +1,5 @@
-*~
-.DS_Store
 .*.swp
+.git*
 /doc
 /lib-cov
 /test/out
