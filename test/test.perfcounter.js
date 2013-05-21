@@ -14,7 +14,7 @@ describe('perfcounter', function () {
 
       var result = profile.result;
       var total = result.total;
-      assert.ok(120 > total && total >= 100,
+      assert.ok(120 > total && total >= 90,
         fmt('Expect total time %d to be about 100', total));
 
       assert.ok(Math.abs(total - (result.end - result.start)) < 1,
@@ -46,13 +46,13 @@ describe('perfcounter', function () {
           var elapsed2 = result.children[1].total;
           var elapsed21 = result.children[1].children[0].total;
 
-          assert.ok(230 > total && total >= 210,
+          assert.ok(230 > total && total >= 200,
             fmt('Expect total time %d to be about 210', total));
-          assert.ok(120 > elapsed1 && elapsed1 >= 100,
+          assert.ok(120 > elapsed1 && elapsed1 >= 90,
             fmt('Expect Job1 time %d to be about 100', elapsed1));
-          assert.ok(130 > elapsed2 && elapsed2 >= 110,
+          assert.ok(130 > elapsed2 && elapsed2 >= 100,
             fmt('Expect Job2 time %d to be about 110', elapsed2));
-          assert.ok(30 > elapsed21 && elapsed21 >= 10,
+          assert.ok(30 > elapsed21 && elapsed21 >= 0,
             fmt('Expect Job2/Subjob time %d to be about 10', elapsed21));
 
           done();
@@ -72,7 +72,7 @@ describe('perfcounter', function () {
 
         var result = profile.result;
         var missed = result.missed;
-        assert.ok(120 > missed && missed >= 100,
+        assert.ok(120 > missed && missed >= 90,
           fmt('Expect missed time %d to be about 100', missed));
 
         done();
