@@ -17,4 +17,7 @@ test-cov:
 doc:
 	./node_modules/.bin/ndoc --index README.md lib
 
-.PHONY: test test-cov doc
+lint:
+	jshint --show-non-errors lib
+
+.PHONY: test test-cov doc lint
