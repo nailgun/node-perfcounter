@@ -1,57 +1,61 @@
 'use strict';
 
-var perfcounter = require('..'),
+var PerfCounter = require('..'),
     should = require('should'),
     assert = require('assert'),
     fmt = require('util').format;
 
-describe('perfcounter', function () {
+describe('PerfCounter', function () {
   it('should measure delay between start() and stop()', function (done) {
-    var profile = perfcounter.start('Total');
+    var profile = new PerfCounter;
+    profile.start('Total');
 
     setTimeout(function () {
-      profile.stop();
+      profile.stop('Total');
 
-      var result = profile.result;
-      var total = result.total;
+      var data = profile.data;
+      var total = data.total;
       assert.ok(120 > total && total >= 90,
         fmt('Expect total time %d to be about 100', total));
 
-      assert.ok(Math.abs(total - (result.end - result.start)) < 1,
+      assert.ok(Math.abs(total - (data.end - data.start)) < 1,
         fmt('Expect start/stop difference %d to be about total time',
-          (result.end - result.start), total));
+          (data.end - data.start), total));
 
       done();
     }, 100);
   });
 
   it('should measure delay between nested start() and stop()', function (done) {
-    var profile = perfcounter.start('Total');
+    var profile = new PerfCounter;
+    profile.start('Total');
 
     setTimeout(function () {
+
       profile.start('Job1');
-      profile.start('Job2');
       setTimeout(function () {
         profile.stop('Job1');
 
-        profile.start('Job2/Subjob');
+        profile.start('Job2');
+        profile.start('Subjob');
         setTimeout(function () {
-          profile.stop('Job2/Subjob');
+          profile.stop('Subjob');
           profile.stop('Job2');
-          profile.stop();
 
-          var result = profile.result;
-          var total = result.total;
-          var elapsed1 = result.children[0].total;
-          var elapsed2 = result.children[1].total;
-          var elapsed21 = result.children[1].children[0].total;
+          profile.stop('Total');
+
+          var data = profile.data;
+          var total = data.total;
+          var elapsed1 = data.children[0].total;
+          var elapsed2 = data.children[1].total;
+          var elapsed21 = data.children[1].children[0].total;
 
           assert.ok(230 > total && total >= 200,
             fmt('Expect total time %d to be about 210', total));
           assert.ok(120 > elapsed1 && elapsed1 >= 90,
             fmt('Expect Job1 time %d to be about 100', elapsed1));
-          assert.ok(130 > elapsed2 && elapsed2 >= 100,
-            fmt('Expect Job2 time %d to be about 110', elapsed2));
+          assert.ok(30 > elapsed2 && elapsed2 >= 0,
+            fmt('Expect Job2 time %d to be about 10', elapsed2));
           assert.ok(30 > elapsed21 && elapsed21 >= 0,
             fmt('Expect Job2/Subjob time %d to be about 10', elapsed21));
 
@@ -62,16 +66,19 @@ describe('perfcounter', function () {
   });
 
   it('should calculate missed coverage', function (done) {
-    var profile = perfcounter.start('Total');
+    var profile = new PerfCounter;
+    profile.start('Total');
 
     setTimeout(function () {
+
       profile.start('Job');
       setTimeout(function () {
         profile.stop('Job');
-        profile.stop();
 
-        var result = profile.result;
-        var missed = result.missed;
+        profile.stop('Total');
+
+        var data = profile.data;
+        var missed = data.missed;
         assert.ok(120 > missed && missed >= 90,
           fmt('Expect missed time %d to be about 100', missed));
 
@@ -80,33 +87,44 @@ describe('perfcounter', function () {
     }, 100);
   });
 
-  it('should mark interrupted measures', function () {
-    var profile = perfcounter.start('Total');
-    profile.start('Job1');
-    profile.start('Job2');
-    profile.stop();
-
-    var result = profile.result;
-    result.children[0].interrupted.should.be.true;
-    result.children[1].interrupted.should.be.true;
-  });
-
-  describe('.result', function () {
-    it('should contain null if not stopped', function () {
-      var profile = perfcounter.start('Total');
-      should.not.exist(profile.result);
+  describe('.data', function () {
+    it('should be null when PerfCounter created', function () {
+      var profile = new PerfCounter;
+      should.not.exist(profile.data);
     });
   });
 
-  describe('.start(name, [meta])', function () {
-    it("should set timer's name", function () {
-      var profile = perfcounter.start('Total');
-      profile.start('Job1');
-      profile.stop();
+  describe('.stopped', function () {
+    it('should be true when PerfCounter created', function () {
+      var profile = new PerfCounter;
+      profile.stopped.should.be.true;
+    });
 
-      var result = profile.result;
-      result.name.should.equal('Total');
-      result.children[0].name.should.equal('Job1');
+    it('should be false after .start()', function () {
+      var profile = new PerfCounter;
+      profile.start('Total');
+      profile.stopped.should.be.false;
+    });
+
+    it('should be true after all jobs are stopped', function () {
+      var profile = new PerfCounter;
+      profile.start('Total');
+      profile.stop('Total');
+      profile.stopped.should.be.true;
+    });
+  });
+
+  describe('.start(job, [meta])', function () {
+    it("should set timer's job", function () {
+      var profile = new PerfCounter;
+      profile.start('Total');
+      profile.start('Job1');
+      profile.stop('Job1');
+      profile.stop('Total');
+
+      var data = profile.data;
+      data.job.should.equal('Total');
+      data.children[0].job.should.equal('Job1');
     });
 
     it("should set timer's meta information", function () {
@@ -117,44 +135,63 @@ describe('perfcounter', function () {
         data: 1234
       };
 
-      var profile = perfcounter.start('Total', meta1);
+      var profile = new PerfCounter;
+      profile.start('Total', meta1);
       profile.start('Job1', meta2);
-      profile.stop();
+      profile.stop('Job1');
+      profile.stop('Total');
 
-      var result = profile.result;
-      result.meta.should.eql(meta1);
-      result.children[0].meta.should.eql(meta2);
+      var data = profile.data;
+      data.meta.should.eql(meta1);
+      data.children[0].meta.should.eql(meta2);
     });
   });
 
-  describe('.stop([meta])', function () {
+  describe('.stop(job, [meta])', function () {
+    it('should throw if called with unmatching job', function () {
+      var profile = new PerfCounter;
+      profile.start('Total');
+      profile.start('Job1');
+
+      (function () {
+        profile.stop('Total');
+      }).should.throw;
+    });
+
     it("should extend timer's meta information", function () {
       var meta1 = {
-        data: 123
+        data1: 'd11',
+        data2: 'd12'
       };
       var meta2 = {
-        data: 1234
+        data1: 'd21',
+        data2: 'd22'
       };
       var meta1e = {
-        data2: 123
+        data2: 'd13',
+        data3: 'd14'
       };
       var meta2e = {
-        data2: 1234
+        data2: 'd23',
+        data3: 'd24'
       };
 
-      var profile = perfcounter.start('Total', meta1);
+      var profile = new PerfCounter;
+      profile.start('Total', meta1);
       profile.start('Job1', meta2);
       profile.stop('Job1', meta2e);
-      profile.stop(null, meta1e);
+      profile.stop('Total', meta1e);
 
-      var result = profile.result;
-      result.meta.should.eql({
-        data: 123,
-        data2: 123
+      var data = profile.data;
+      data.meta.should.eql({
+        data1: 'd11',
+        data2: 'd13',
+        data3: 'd14'
       });
-      result.children[0].meta.should.eql({
-        data: 1234,
-        data2: 1234
+      data.children[0].meta.should.eql({
+        data1: 'd21',
+        data2: 'd23',
+        data3: 'd24'
       });
     });
   });
