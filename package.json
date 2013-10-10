@@ -1,6 +1,6 @@
 {
   "name": "perfcounter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Performance counter with nesting",
   "keywords": ["benchmark", "performance", "speed", "timestamp"],
   "homepage": "https://github.com/nailgun/node-perfcounter",
@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "mocha" : "",
-    "should": ""
+    "should": "",
+    "async": ""
   }
 }

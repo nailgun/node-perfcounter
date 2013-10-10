@@ -3,6 +3,7 @@
 var PerfCounter = require('..'),
     should = require('should'),
     assert = require('assert'),
+    async = require('async'),
     fmt = require('util').format;
 
 describe('PerfCounter', function () {
@@ -193,6 +194,56 @@ describe('PerfCounter', function () {
         data2: 'd23',
         data3: 'd24'
       });
+    });
+  });
+
+  describe('.parallel()', function () {
+    it('should create subcounter that runs in parallel with other parallel subcounters', function (done) {
+      var profile = new PerfCounter;
+      profile.start('Total');
+
+      async.times(10, function (n, cb) {
+        var sub = profile.parallel();
+        sub.start('Job1');
+        setTimeout(function () {
+          sub.stop('Job1');
+
+
+          if (n % 2) {
+            cb();
+          }
+          else {
+            sub.start('Job2');
+            setTimeout(function () {
+              sub.stop('Job2');
+              cb();
+            }, 10);
+          }
+        }, 50);
+      },
+      function () {
+        profile.stop('Total');
+
+        var data = profile.data;
+        data.total.should.be.within(50, 80);
+
+        data.children[0].parallel.should.have.length(10);
+        data.children[0].total.should.be.within(40, 70);
+        data.children[0].average.should.be.within(40, 70);
+
+        data.children[1].parallel.should.have.length(5);
+        data.children[1].total.should.be.within(0, 20);
+        data.children[1].average.should.be.within(0, 20);
+
+        done();
+      });
+    });
+
+    it('should throw if counter is not running', function () {
+      var profile = new PerfCounter;
+      (function () {
+        profile.parallel();
+      }).should.throw;
     });
   });
 });
